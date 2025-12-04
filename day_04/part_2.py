@@ -1,43 +1,26 @@
 from pathlib import Path
 
+import numpy as np
+from scipy.signal import convolve2d
+
 CURRENT_FOLDER = Path(__file__).absolute().parent
 INPUT_FILE = CURRENT_FOLDER / "input.txt"
 DEMO_INPUT_FILE = CURRENT_FOLDER / "demo_input.txt"
 
-grid = []
-with open(DEMO_INPUT_FILE) as f:
-    for line in f.read().splitlines():
-        grid.append(list(line))
+with open(INPUT_FILE) as f:
+    grid = np.array([list(line) for line in f.read().splitlines()])
+grid = (grid == "@").astype(int)
+kernel = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
 
-height = len(grid)
-width = len(grid[0])
-
-
-def removable_locations(grid):
-    locations = []
-    for row, line in enumerate(grid):
-        for column, element in enumerate(line):
-            if element != "@":
-                continue
-            neighbours = 0
-            for dy in range(-1, 2):
-                for dx in range(-1, 2):
-                    if (dx, dy) == (0, 0):
-                        continue
-                    if (
-                        0 <= row + dy < height
-                        and 0 <= column + dx < width
-                        and grid[row + dy][column + dx] == "@"
-                    ):
-                        neighbours += 1
-            if neighbours < 4:
-                locations.append((row, column))
-    return locations
 
 total = 0
-while len(locations := removable_locations(grid)) > 0:
-    total += len(locations)
-    for row, column in locations:
-        grid[row][column] = "."
+while True:
+    convolution = convolve2d(grid, kernel, mode="same")
+    mask = (grid == 1) & (convolution < 4)
+    if mask.any():
+        total += mask.sum()
+        grid[mask] = 0
+    else:
+        break
 
 print(total)
