@@ -4,7 +4,7 @@ from pathlib import Path
 
 from aocd import get_data
 
-DAY = 6
+DAY = 7
 YEAR = 2025
 
 root_dir = Path(__file__).parent
